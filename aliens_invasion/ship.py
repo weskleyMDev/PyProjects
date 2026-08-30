@@ -1,12 +1,14 @@
 import pygame
+from settings import Settings
 
 
 class Ship:
     """ A class of rocket ship. """
 
-    def __init__(self, screen: pygame.Surface):
+    def __init__(self, settings: Settings, screen: pygame.Surface):
         """ Initialize the ship and set its starting position. """
         self.screen = screen
+        self.settings = settings
 
         """ Load the ship image and get its rect. """
         self.image = pygame.image.load("images/DurrrSpaceShip.png")
@@ -17,6 +19,8 @@ class Ship:
         self.rect.centerx = self.screen_rect.centerx
         self.rect.bottom = self.screen_rect.bottom
 
+        self.center = float(self.rect.centerx)
+
         """ Movement flag """
         self.moving_right = False
         self.moving_left = False
@@ -26,7 +30,9 @@ class Ship:
         self.screen.blit(self.image, self.rect)
 
     def update(self):
-        if self.moving_right:
-            self.rect.centerx += 1
-        if self.moving_left:
-            self.rect.centerx -= 1
+        if self.moving_right and self.rect.right < self.screen_rect.right:
+            self.rect.centerx += self.settings.ship_speed_factor
+        if self.moving_left and self.rect.left > 0:
+            self.rect.centerx -= self.settings.ship_speed_factor
+
+        self.rect.centerx = self.center
