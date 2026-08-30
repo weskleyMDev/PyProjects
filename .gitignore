@@ -1,0 +1,20 @@
+# Ambientes virtuais Python
+**/env/
+**/venv/
+**/.venv/
+
+# Cache Python
+**/__pycache__/
+*.py[cod]
+
+# Variáveis de ambiente / segredos
+**/.env
+**/.env.*
+!**/.env.example
+
+# Configurações do VS Code
+**/.vscode/
+
+# Outros arquivos
+.DS_Store
+Thumbs.db
