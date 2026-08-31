@@ -19,6 +19,7 @@ class Ship:
         self.rect.centerx = self.screen_rect.centerx
         self.rect.bottom = self.screen_rect.bottom
 
+        """ Store decimal value for ship's center """
         self.center = float(self.rect.centerx)
 
         """ Movement flag """
@@ -30,9 +31,11 @@ class Ship:
         self.screen.blit(self.image, self.rect)
 
     def update(self):
+        """ Update ship's center value, not the rect """
         if self.moving_right and self.rect.right < self.screen_rect.right:
-            self.rect.centerx += self.settings.ship_speed_factor
+            self.center += self.settings.ship_speed_factor
         if self.moving_left and self.rect.left > 0:
-            self.rect.centerx -= self.settings.ship_speed_factor
+            self.center -= self.settings.ship_speed_factor
 
+        """ Update rect object from self.center """
         self.rect.centerx = self.center
