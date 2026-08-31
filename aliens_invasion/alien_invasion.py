@@ -1,7 +1,9 @@
 import pygame
+import game_functions as gf
+
 from settings import Settings
 from ship import Ship
-import game_functions as gf
+from pygame.sprite import Group
 
 def run_game():
     pygame.init()
@@ -17,9 +19,12 @@ def run_game():
     """ Make a ship. """
     ship = Ship(game_settings, screen)
 
+    bullets = Group()
+
     while True:
-        gf.check_events(ship)
+        gf.check_events(game_settings, screen, ship, bullets)
         ship.update()
-        gf.update_screen(game_settings, screen, ship)
+        bullets.update()
+        gf.update_screen(game_settings, screen, ship, bullets)
 
 run_game()

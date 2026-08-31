@@ -38,4 +38,4 @@ class Ship:
             self.center -= self.settings.ship_speed_factor
 
         """ Update rect object from self.center """
-        self.rect.centerx = self.center
+        self.rect.centerx = int(self.center)
