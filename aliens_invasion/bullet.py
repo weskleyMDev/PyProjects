@@ -5,8 +5,8 @@ from ship import Ship
 
 class Bullet(pygame.sprite.Sprite):
 
-    def __init__(self, settings: Settings, screen: pygame.Surface, ship: Ship):
-        super().__init__()
+    def __init__(self, settings: Settings, screen: pygame.Surface, ship: Ship, *groups):
+        super().__init__(*groups)
         self.screen = screen
 
         self.rect = pygame.Rect(0, 0, settings.bullet_width, settings.bullet_heigh)
@@ -26,6 +26,3 @@ class Bullet(pygame.sprite.Sprite):
     def update(self):
         self.y -= self.speed_factor
         self.rect.y = int(self.y)
-
-    def draw_bullet(self):
-        self.screen.blit(self.image, self.rect)
