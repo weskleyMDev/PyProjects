@@ -11,6 +11,7 @@ from fast_zero.schemas.token import Token
 from fast_zero.schemas.user import UserBase, UserDTO, UserList
 from fast_zero.security import (
     create_access_token,
+    get_current_user,
     get_password_hash,
     verify_password,
 )
@@ -20,7 +21,10 @@ app = FastAPI()
 
 @app.get("/users/", response_model=UserList)
 def get_users(
-    limit: int = 10, skip: int = 0, session: Session = Depends(get_session)
+    limit: int = 10,
+    skip: int = 0,
+    session: Session = Depends(get_session),
+    _: User = Depends(get_current_user),
 ) -> UserList:
     db_users = session.scalars(select(User).limit(limit).offset(skip)).all()
     return UserList.model_validate({"users": db_users})
@@ -58,36 +62,38 @@ def create_user(
 
 @app.put("/users/{user_id}", response_model=UserDTO)
 def update_user(
-    user_id: int, user: UserBase, session: Session = Depends(get_session)
+    user_id: int,
+    user: UserBase,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ) -> UserDTO:
-    db_user = session.scalar(select(User).where(User.user_id == user_id))
-
-    if not db_user:
+    if current_user.user_id != user_id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail=f"User with id: {user_id} not found!",
+            status_code=HTTPStatus.FORBIDDEN, detail="Not enough permission!"
         )
-    db_user.username = user.username
-    db_user.password = get_password_hash(user.password)
-    db_user.email = user.email
+
+    current_user.username = user.username
+    current_user.password = get_password_hash(user.password)
+    current_user.email = user.email
 
     session.commit()
-    session.refresh(db_user)
+    session.refresh(current_user)
 
-    return UserDTO.model_validate(db_user)
+    return UserDTO.model_validate(current_user)
 
 
 @app.delete("/users/{user_id}", status_code=HTTPStatus.NO_CONTENT)
-def remove_user(user_id: int, session: Session = Depends(get_session)) -> None:
-    db_user = session.scalar(select(User).where(User.user_id == user_id))
-
-    if not db_user:
+def remove_user(
+    user_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    if current_user.user_id != user_id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail=f"User with id: {user_id} not found!",
+            status_code=HTTPStatus.FORBIDDEN, detail="Not enough permission!"
         )
 
-    session.delete(db_user)
+    session.delete(current_user)
     session.commit()
 
 
