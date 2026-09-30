@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from fast_zero.models.user import User
 from fast_zero.schemas.user import UserDTO
+from fast_zero.security import verify_password
 
 
 def test_create_user_return_created(
@@ -66,8 +67,9 @@ def test_update_user_return_ok(
 
     assert updated_user is not None
     assert updated_user.username == user_schema["username"]
-    assert updated_user.password == user_schema["password"]
     assert updated_user.email == user_schema["email"]
+
+    assert verify_password(user_schema["password"], updated_user.password)
 
 
 def test_update_user_raise_not_found(client: TestClient):
