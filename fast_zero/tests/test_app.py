@@ -90,3 +90,15 @@ def test_remove_user_return_no_content(client: TestClient, user: User):
 def test_remove_user_raise_not_found(client: TestClient):
     response = client.delete("/users/-1")
     assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+def test_get_token(client: TestClient, user: User):
+    response = client.post(
+        "/token",
+        data={"username": user.username, "password": user.clean_password},  # type: ignore
+    )
+    token = response.json()
+
+    assert response.status_code == HTTPStatus.OK
+    assert token["token_type"] == "Bearer"
+    assert "access_token" in token

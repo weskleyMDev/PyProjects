@@ -7,6 +7,7 @@ from fast_zero.app import app
 from fast_zero.database import get_session, test_engine
 from fast_zero.models.base import Base
 from fast_zero.models.user import User
+from fast_zero.security import get_password_hash
 
 
 @pytest.fixture
@@ -35,18 +36,25 @@ def session(engine: Engine):
 
 
 @pytest.fixture
-def user(input_data: dict[str, object], session: Session):
-    user = User(**input_data)
+def user(session: Session):
+    pwd = "your_password"
+    user = User(
+        username="your_username",
+        password=get_password_hash(pwd),
+        email="your_username@mail.com",
+    )
 
     session.add(user)
     session.commit()
     session.refresh(user)
 
+    user.clean_password = pwd  # type: ignore
+
     return user
 
 
 @pytest.fixture
-def input_data() -> dict[str, object]:
+def input_data() -> dict[str, str]:
     return {
         "username": "your_username",
         "password": "your_password",
