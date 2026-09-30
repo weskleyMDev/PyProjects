@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 
 from fast_zero.database import get_session
 from fast_zero.models.user import User
-from fast_zero.schemas.user import UserBase, UserDTO, UserList
 from fast_zero.schemas.token import Token
+from fast_zero.schemas.user import UserBase, UserDTO, UserList
 from fast_zero.security import get_password_hash, verify_password
 
 app = FastAPI()
@@ -92,12 +92,12 @@ def get_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session),
 ):
-    user = session.scalar(select(User).where(
-        User.username == form_data.username
-    ))
+    user = session.scalar(
+        select(User).where(User.username == form_data.username)
+    )
 
     if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED,
-            detail="Incorrect email or password!"
+            detail="Incorrect email or password!",
         )
