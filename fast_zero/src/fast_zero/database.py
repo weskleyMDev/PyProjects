@@ -37,6 +37,6 @@ def get_session():  # pragma: no cover
 
 
 _settings = Settings()
-database_url = str(_create_database_url(_settings))
+database_url = _create_database_url(_settings)
 app_engine = _create_app_engine(_settings)
 test_engine = _create_test_engine(_settings)

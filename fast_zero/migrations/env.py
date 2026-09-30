@@ -3,15 +3,18 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
+from alembic import context
+
 from fast_zero.database import database_url
 from fast_zero.models.base import Base
-
-from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("sqlalchemy.url", database_url)
+db_url = database_url.render_as_string(hide_password=False)
+config.set_main_option("sqlalchemy.url", db_url)
+
+### DATABASE PASSWORD ### : ***
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
