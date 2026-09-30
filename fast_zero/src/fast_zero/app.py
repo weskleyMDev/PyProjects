@@ -9,7 +9,11 @@ from fast_zero.database import get_session
 from fast_zero.models.user import User
 from fast_zero.schemas.token import Token
 from fast_zero.schemas.user import UserBase, UserDTO, UserList
-from fast_zero.security import get_password_hash, verify_password
+from fast_zero.security import (
+    create_access_token,
+    get_password_hash,
+    verify_password,
+)
 
 app = FastAPI()
 
@@ -101,3 +105,7 @@ def get_token(
             status_code=HTTPStatus.UNAUTHORIZED,
             detail="Incorrect email or password!",
         )
+
+    access_token = create_access_token(data={"sub": user.username})
+
+    return {"access_token": access_token, "token_type": "Bearer"}
