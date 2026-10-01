@@ -1,32 +1,29 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from fast_zero.database import get_session
+from fast_zero.dependencies import T_CurrentUser, T_Session
 from fast_zero.models.user import User
 from fast_zero.schemas.user import UserBase, UserDTO, UserList
-from fast_zero.security import get_current_user, get_password_hash
+from fast_zero.security import get_password_hash
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/", response_model=UserList)
 def get_users(
+    session: T_Session,
+    _: T_CurrentUser,
     limit: int = 10,
     skip: int = 0,
-    session: Session = Depends(get_session),
-    _: User = Depends(get_current_user),
 ) -> UserList:
     db_users = session.scalars(select(User).limit(limit).offset(skip)).all()
     return UserList.model_validate({"users": db_users})
 
 
 @router.post("/", status_code=HTTPStatus.CREATED, response_model=UserDTO)
-def create_user(
-    user: UserBase, session: Session = Depends(get_session)
-) -> UserDTO:
+def create_user(user: UserBase, session: T_Session) -> UserDTO:
     db_user = session.scalar(
         select(User).where(
             (User.username == user.username) | (User.email == user.email)
@@ -57,8 +54,8 @@ def create_user(
 def update_user(
     user_id: int,
     user: UserBase,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    session: T_Session,
+    current_user: T_CurrentUser,
 ) -> UserDTO:
     updated_user = session.scalar(select(User).where(User.user_id == user_id))
     if not updated_user:
@@ -84,8 +81,8 @@ def update_user(
 @router.delete("/{user_id}", status_code=HTTPStatus.NO_CONTENT)
 def remove_user(
     user_id: int,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    session: T_Session,
+    current_user: T_CurrentUser,
 ) -> None:
     user = session.scalar(select(User).where(User.user_id == user_id))
     if not user:
