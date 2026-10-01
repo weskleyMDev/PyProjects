@@ -40,22 +40,28 @@ def test_create_user_return_conflict_email(client: TestClient, user: User):
     assert response.status_code == HTTPStatus.CONFLICT
 
 
-def test_get_users_return_ok(client: TestClient, user: User):
+def test_get_users_return_ok(client: TestClient, user: User, token: str):
     user_schema = UserDTO.model_validate(user).model_dump()
-    response = client.get("/users/")
+    response = client.get(
+        "/users/", headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {"users": [user_schema]}
 
 
 def test_update_user_return_ok(
-    client: TestClient, user: User, session: Session
+    client: TestClient, user: User, session: Session, token: str
 ):
     user_schema = {
         "username": "new_username",
         "password": "new_password",
         "email": "new@email.com",
     }
-    response = client.put(f"/users/{user.user_id}", json=user_schema)
+    response = client.put(
+        f"/users/{user.user_id}",
+        json=user_schema,
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "user_id": user.user_id,
@@ -72,23 +78,33 @@ def test_update_user_return_ok(
     assert verify_password(user_schema["password"], updated_user.password)
 
 
-def test_update_user_raise_not_found(client: TestClient):
+def test_update_user_raise_not_found(client: TestClient, token: str):
     user_schema = {
         "username": "new_username",
         "password": "new_password",
         "email": "new@email.com",
     }
-    response = client.put("/users/-1", json=user_schema)
+    response = client.put(
+        "/users/-1",
+        json=user_schema,
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_remove_user_return_no_content(client: TestClient, user: User):
-    response = client.delete(f"users/{user.user_id}")
+def test_remove_user_return_no_content(
+    client: TestClient, user: User, token: str
+):
+    response = client.delete(
+        f"users/{user.user_id}", headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == HTTPStatus.NO_CONTENT
 
 
-def test_remove_user_raise_not_found(client: TestClient):
-    response = client.delete("/users/-1")
+def test_remove_user_raise_not_found(client: TestClient, token: str):
+    response = client.delete(
+        "/users/-1", headers={"Authorization": f"Bearer {token}"}
+    )
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
