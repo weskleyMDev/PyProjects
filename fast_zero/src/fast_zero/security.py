@@ -20,7 +20,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
 pwd_context = PasswordHash.recommended()
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 
 def get_password_hash(password: str) -> str:
