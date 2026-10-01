@@ -67,6 +67,12 @@ def update_user(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ) -> UserDTO:
+    updated_user = session.scalar(select(User).where(User.user_id == user_id))
+    if not updated_user:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"User with id={user_id} not found!",
+        )
     if current_user.user_id != user_id:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN, detail="Not enough permission!"
@@ -88,6 +94,12 @@ def remove_user(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ) -> None:
+    user = session.scalar(select(User).where(User.user_id == user_id))
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"User with id={user_id} not found!",
+        )
     if current_user.user_id != user_id:
         raise HTTPException(
             status_code=HTTPStatus.FORBIDDEN, detail="Not enough permission!"
