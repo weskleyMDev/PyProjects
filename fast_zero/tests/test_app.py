@@ -110,7 +110,7 @@ def test_remove_user_raise_not_found(client: TestClient, token: str):
 
 def test_get_token(client: TestClient, user: User):
     response = client.post(
-        "/token",
+        "/auth/token",
         data={"username": user.username, "password": user.clean_password},  # type: ignore
     )
     token = response.json()
