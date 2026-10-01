@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from secrets import token_hex
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -14,10 +13,7 @@ from sqlalchemy.orm import Session
 
 from fast_zero.database import get_session
 from fast_zero.models.user import User
-
-SECRET_KEY = token_hex(128)
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
+from fast_zero.settings import settings
 
 pwd_context = PasswordHash.recommended()
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/token")
@@ -35,11 +31,13 @@ def create_access_token(data: dict[str, Any]):
     to_encode = data.copy()
 
     expire = datetime.now(tz=ZoneInfo("UTC")) + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES or 15
     )
 
     to_encode.update({"exp": expire})
-    encoded_jwt = encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
     return encoded_jwt
 
 
@@ -48,7 +46,11 @@ def get_current_user(
     token: str = Depends(oauth2_schema),
 ):
     try:
-        payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM or "HS256"],
+        )
         username = payload.get("sub")
 
         if not username:
