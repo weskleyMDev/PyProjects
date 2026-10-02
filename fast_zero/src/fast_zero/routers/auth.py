@@ -3,7 +3,7 @@ from http import HTTPStatus
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from fast_zero.dependencies import T_OAuth2Form, T_Session
+from fast_zero.dependencies import T_CurrentUser, T_OAuth2Form, T_Session
 from fast_zero.models.user import User
 from fast_zero.schemas.token import Token
 from fast_zero.security import create_access_token, verify_password
@@ -29,3 +29,10 @@ def get_token(
     access_token = create_access_token(data={"sub": user.username})
 
     return {"access_token": access_token, "token_type": "Bearer"}
+
+
+@router.post("/refresh-token", response_model=Token)
+def generate_refresh_token(user: T_CurrentUser):
+    refresh_token = create_access_token(data={"sub": user.username})
+
+    return {"access_token": refresh_token, "token_type": "Bearer"}
