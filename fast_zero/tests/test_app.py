@@ -92,6 +92,23 @@ def test_update_user_raise_not_found(client: TestClient, token: str):
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
+def test_update_user_return_forbidden(
+    client: TestClient, other_user: User, token: str
+):
+    user_schema = {
+        "username": "new_username",
+        "password": "new_password",
+        "email": "new@email.com",
+    }
+    response = client.put(
+        f"/users/{other_user.user_id}",
+        json=user_schema,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {"detail": "Not enough permission!"}
+
+
 def test_remove_user_return_no_content(
     client: TestClient, user: User, token: str
 ):
@@ -106,6 +123,18 @@ def test_remove_user_raise_not_found(client: TestClient, token: str):
         "/users/-1", headers={"Authorization": f"Bearer {token}"}
     )
     assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "User with id=-1 not found!"}
+
+
+def test_remove_user_raise_forbidden(
+    client: TestClient, other_user: User, token: str
+):
+    response = client.delete(
+        f"/users/{other_user.user_id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {"detail": "Not enough permission!"}
 
 
 def test_get_token(client: TestClient, user: User):

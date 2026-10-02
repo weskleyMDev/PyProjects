@@ -1,4 +1,6 @@
 import pytest
+from factory.base import Factory
+from factory.declarations import LazyAttribute, Sequence
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
@@ -8,6 +10,15 @@ from fast_zero.database import get_session, test_engine
 from fast_zero.models.base import Base
 from fast_zero.models.user import User
 from fast_zero.security import get_password_hash
+
+
+class UserFactory(Factory):  # type: ignore
+    class Meta:  # type: ignore
+        model = User
+
+    username = Sequence(lambda n: f"test{n}")  # type: ignore
+    password = LazyAttribute(lambda obj: f"{obj.username}drop")  # type: ignore
+    email = LazyAttribute(lambda obj: f"{obj.username}@mail.com")  # type: ignore
 
 
 @pytest.fixture
@@ -37,11 +48,25 @@ def session(engine: Engine):
 
 @pytest.fixture
 def user(session: Session):
-    pwd = "your_password"
-    user = User(
-        username="your_username",
+    pwd = "user_password"
+    user = UserFactory(
         password=get_password_hash(pwd),
-        email="your_username@mail.com",
+    )
+
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    user.clean_password = pwd  # type: ignore
+
+    return user
+
+
+@pytest.fixture
+def other_user(session: Session):
+    pwd = "user_password"
+    user = UserFactory(
+        password=get_password_hash(pwd),
     )
 
     session.add(user)
@@ -65,9 +90,9 @@ def token(client: TestClient, user: User):
 @pytest.fixture
 def input_data() -> dict[str, str]:
     return {
-        "username": "your_username",
-        "password": "your_password",
-        "email": "your_username@mail.com",
+        "username": "user_username",
+        "password": "user_password",
+        "email": "user_username@mail.com",
     }
 
 
@@ -75,6 +100,6 @@ def input_data() -> dict[str, str]:
 def output_data() -> dict[str, object]:
     return {
         "user_id": 1,
-        "username": "your_username",
-        "email": "your_username@mail.com",
+        "username": "user_username",
+        "email": "user_username@mail.com",
     }
