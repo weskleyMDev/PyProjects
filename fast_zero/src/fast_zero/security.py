@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jwt import decode, encode  # type: ignore
-from jwt.exceptions import PyJWTError
+from jwt.exceptions import DecodeError, ExpiredSignatureError
 from pwdlib import PasswordHash
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -59,10 +59,16 @@ def get_current_user(
                 detail="Invalid credentials!",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-    except PyJWTError:
+    except ExpiredSignatureError:
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED,
-            detail="Invalid credentials!",
+            detail="Token expired!",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except DecodeError:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail="Invalid token!",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
