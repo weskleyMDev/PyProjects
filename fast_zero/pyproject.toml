@@ -49,6 +49,8 @@ lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format .'
 
 migrations = { cmd = "alembic revision --autogenerate -m", help = "Create a new migration" }
+up_db = { cmd = "alembic upgrade head", help = "Apply migrations to the database" }
+down_db = { cmd = "alembic downgrade base", help = "Revert all migrations" }
 
 [tool.pytest.ini_options]
 pythonpath = "."
