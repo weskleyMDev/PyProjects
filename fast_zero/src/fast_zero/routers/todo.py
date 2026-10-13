@@ -1,10 +1,11 @@
 from http import HTTPStatus
 
 from fastapi import APIRouter
+from sqlalchemy import select
 
 from fast_zero.dependencies import T_CurrentUser, T_Session
-from fast_zero.models.todo import Todo
-from fast_zero.schemas.todo import TodoDto, TodoSchema
+from fast_zero.models.todo import Todo, TodoState
+from fast_zero.schemas.todo import TodoDto, TodoList, TodoSchema
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 
@@ -25,3 +26,29 @@ def create_todo(
     session.refresh(db_todo)
 
     return TodoDto.model_validate(db_todo)
+
+
+@router.get("/", response_model=TodoList)
+def get_todos(
+    user: T_CurrentUser,
+    session: T_Session,
+    title: str | None = None,
+    description: str | None = None,
+    state: TodoState | None = None,
+    offset: int | None = None,
+    limit: int | None = None,
+):
+    query = select(Todo).where(Todo.user_id == user.user_id)
+
+    if title:
+        query = query.filter(Todo.title.contains(title))
+
+    if description:
+        query = query.filter(Todo.description.contains(description))
+
+    if state:
+        query = query.filter(Todo.state == state)
+
+    todos = session.scalars(query.offset(offset).limit(limit)).all()
+
+    return TodoList.model_validate({"todos": todos})
