@@ -33,6 +33,10 @@ extend-exclude = ['migrations']
 [tool.ruff.lint]
 preview = true
 select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+extend-select = ["PLR0913"]
+
+[tool.ruff.lint.pylint]
+max-args = 7
 
 [tool.ruff.format]
 preview = true
