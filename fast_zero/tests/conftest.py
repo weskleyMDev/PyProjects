@@ -1,6 +1,8 @@
 import pytest
+from factory import fuzzy
 from factory.base import Factory
 from factory.declarations import LazyAttribute, Sequence
+from factory.faker import Faker
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
@@ -8,6 +10,7 @@ from sqlalchemy.orm import Session
 from fast_zero.app import app
 from fast_zero.database import get_session, test_engine
 from fast_zero.models.base import Base
+from fast_zero.models.todo import Todo, TodoState
 from fast_zero.models.user import User
 from fast_zero.security import get_password_hash
 
@@ -19,6 +22,16 @@ class UserFactory(Factory):  # type: ignore
     username = Sequence(lambda n: f"test{n}")  # type: ignore
     password = LazyAttribute(lambda obj: f"{obj.username}drop")  # type: ignore
     email = LazyAttribute(lambda obj: f"{obj.username}@mail.com")  # type: ignore
+
+
+class TodoFactory(Factory):  # type: ignore
+    class Meta:  # type: ignore
+        model = Todo
+
+    title = Faker("text")
+    description = Faker("text")
+    state = fuzzy.FuzzyChoice(TodoState)
+    user_id = 1
 
 
 @pytest.fixture
