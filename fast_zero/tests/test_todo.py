@@ -101,3 +101,26 @@ def test_get_todos_filter_state_should_return_five_todos(
 
     assert response.status_code == HTTPStatus.OK
     assert len(response.json()["todos"]) == expected_todos
+
+
+def test_delete_todo_return_no_content(
+    session: Session, client: TestClient, user: User, token: str
+):
+    todo = TodoFactory(user_id=user.user_id)
+    session.add(todo)
+    session.commit()
+    session.refresh(todo)
+
+    response = client.delete(
+        f"/todos/{todo.todo_id}", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == HTTPStatus.NO_CONTENT
+
+
+def test_delete_todo_return_not_found(client: TestClient, token: str):
+    response = client.delete(
+        f"/todos/{10}", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
