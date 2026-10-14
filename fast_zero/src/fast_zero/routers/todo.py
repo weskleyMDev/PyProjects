@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
 from fast_zero.dependencies import T_CurrentUser, T_Session
@@ -52,3 +52,21 @@ def get_todos(
     todos = session.scalars(query.offset(offset).limit(limit)).all()
 
     return TodoList.model_validate({"todos": todos})
+
+
+@router.delete("/{todo_id}", status_code=HTTPStatus.NO_CONTENT)
+def remove_todo(todo_id: int, user: T_CurrentUser, session: T_Session):
+    todo = session.scalar(
+        select(Todo).where(
+            Todo.user_id == user.user_id, Todo.todo_id == todo_id
+        )
+    )
+
+    if not todo:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"TODO with id={todo_id} not found!",
+        )
+
+    session.delete(todo)
+    session.commit()
