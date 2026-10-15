@@ -120,7 +120,33 @@ def test_delete_todo_return_no_content(
 
 def test_delete_todo_return_not_found(client: TestClient, token: str):
     response = client.delete(
-        f"/todos/{10}", headers={"Authorization": f"Bearer {token}"}
+        "/todos/10", headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+def test_update_todo_return_ok(
+    session: Session, client: TestClient, user: User, token: str
+):
+    todo = TodoFactory(user_id=user.user_id)
+    session.add(todo)
+    session.commit()
+    session.refresh(todo)
+
+    response = client.patch(
+        f"/todos/{todo.todo_id}",
+        json={"title": "updated title"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()["title"] == todo.title
+
+
+def test_update_todo_return_not_found(client: TestClient, token: str):
+    response = client.patch(
+        "/todos/10", json={}, headers={"Authorization": f"Bearer {token}"}
     )
 
     assert response.status_code == HTTPStatus.NOT_FOUND
