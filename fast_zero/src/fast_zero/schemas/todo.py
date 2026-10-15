@@ -17,3 +17,9 @@ class TodoDto(TodoSchema):
 
 class TodoList(BaseModel):
     todos: list[TodoDto]
+
+
+class TodoUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    state: TodoState | None = None

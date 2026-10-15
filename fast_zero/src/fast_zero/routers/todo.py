@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from fast_zero.dependencies import T_CurrentUser, T_Session
 from fast_zero.models.todo import Todo, TodoState
-from fast_zero.schemas.todo import TodoDto, TodoList, TodoSchema
+from fast_zero.schemas.todo import TodoDto, TodoList, TodoSchema, TodoUpdate
 
 router = APIRouter(prefix="/todos", tags=["todos"])
 
@@ -56,17 +56,42 @@ def get_todos(
 
 @router.delete("/{todo_id}", status_code=HTTPStatus.NO_CONTENT)
 def remove_todo(todo_id: int, user: T_CurrentUser, session: T_Session):
-    todo = session.scalar(
+    db_todo = session.scalar(
         select(Todo).where(
             Todo.user_id == user.user_id, Todo.todo_id == todo_id
         )
     )
 
-    if not todo:
+    if not db_todo:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"TODO with id={todo_id} not found!",
         )
 
-    session.delete(todo)
+    session.delete(db_todo)
     session.commit()
+
+
+@router.patch("/{todo_id}", response_model=TodoDto)
+def update_todo(
+    todo_id: int, session: T_Session, user: T_CurrentUser, todo: TodoUpdate
+):
+    db_todo = session.scalar(
+        select(Todo).where(
+            Todo.user_id == user.user_id, Todo.todo_id == todo_id
+        )
+    )
+
+    if not db_todo:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail=f"TODO with id={todo_id} not found!",
+        )
+
+    for key, value in todo.model_dump(exclude_unset=True).items():
+        setattr(db_todo, key, value)
+
+    session.commit()
+    session.refresh(db_todo)
+
+    return TodoDto.model_validate(db_todo)
