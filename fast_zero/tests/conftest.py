@@ -4,11 +4,12 @@ from factory.base import Factory
 from factory.declarations import LazyAttribute, Sequence
 from factory.faker import Faker
 from fastapi.testclient import TestClient
-from sqlalchemy import Engine
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session
+from testcontainers.postgres import PostgresContainer
 
 from fast_zero.app import app
-from fast_zero.database import get_session, test_engine
+from fast_zero.database import get_session
 from fast_zero.models.base import Base
 from fast_zero.models.todo import Todo, TodoState
 from fast_zero.models.user import User
@@ -45,18 +46,38 @@ def client(session: Session):
     app.dependency_overrides.clear()
 
 
+# @pytest.fixture(scope="session")
+# def engine():
+#     engine = test_engine
+#     Base.metadata.create_all(engine)
+#     yield engine
+#     Base.metadata.drop_all(engine)
+#     engine.dispose()
+
+
 @pytest.fixture(scope="session")
 def engine():
-    engine = test_engine
-    return engine
+    with PostgresContainer("postgres:18", driver="psycopg") as postgres:
+        engine = create_engine(postgres.get_connection_url())
+        Base.metadata.create_all(engine)
+        yield engine
+        Base.metadata.drop_all(engine)
+        engine.dispose()
 
 
 @pytest.fixture
 def session(engine: Engine):
-    Base.metadata.create_all(test_engine)
-    with Session(engine) as session:
+    connection = engine.connect()
+    transaction = connection.begin()
+
+    with Session(
+        bind=connection,
+        join_transaction_mode="create_savepoint",
+    ) as session:
         yield session
-    Base.metadata.drop_all(test_engine)
+
+    transaction.rollback()
+    connection.close()
 
 
 @pytest.fixture

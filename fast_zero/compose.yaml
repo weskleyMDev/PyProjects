@@ -1,0 +1,36 @@
+services:
+  fastzero_database:
+    image: postgres:18
+    volumes:
+      - pgdata:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "${DATABASE_PORT}:5432"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  fastzero_app:
+    image: fastzero_app
+    entrypoint: ./entrypoint.sh
+    build: .
+    ports:
+      - 8000:8000
+    depends_on:
+      fastzero_database:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_HOST: fastzero_database
+      DATABASE_PORT: "5432"
+
+volumes:
+  pgdata:
