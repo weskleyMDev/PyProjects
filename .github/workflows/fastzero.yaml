@@ -1,5 +1,13 @@
-name: Pipeline
-on: [push, pull_request]
+name: Fast Zero CI
+on:
+  push:
+    paths:
+      - 'fast_zero/**'
+      - '.github/workflows/fastzero.yaml'
+  pull_request:
+    paths:
+      - 'fast_zero/**'
+      - '.github/workflows/fastzero.yaml'
 
 jobs:
   test:
