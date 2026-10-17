@@ -24,10 +24,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
-      - name: Check JWT configuration
-        run: |
-          uv run python -c "import jwt; print('PyJWT:', jwt.__version__)"
-          uv run python -c "from fast_zero.settings import settings; print('ALGORITHM:', repr(settings.ALGORITHM))"
-
-      # - name: Run tests
-      #   run: uv run task test
+      - name: Run tests
+        run: uv run task test
