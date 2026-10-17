@@ -1,12 +1,8 @@
 name: Pipeline
 
-'on': push: pull_request:
+on: [push, pull_request]
 
-jobs: test: runs-on: ubuntu-latest defaults: run: working-directory: fast_zero
-
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+jobs: test: runs-on: ubuntu-latest steps: - name: Checkout repository uses: actions/checkout@v4
 
   - name: Install uv
     uses: astral-sh/setup-uv@v6
@@ -15,7 +11,9 @@ steps:
     run: uv python install 3.13
 
   - name: Install dependencies
+    working-directory: fast_zero
     run: uv sync --locked
 
   - name: Run tests
+    working-directory: fast_zero
     run: uv run pytest
