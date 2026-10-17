@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DATABASE_NAME: str | None = None
     TEST_DATABASE_NAME: str | None = None
     SECRET_KEY: str | None = None
-    ALGORITHM: str | None = None
+    ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: float | None = None
 
 

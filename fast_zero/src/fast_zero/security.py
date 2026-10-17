@@ -49,7 +49,7 @@ def get_current_user(
         payload = decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM or "HS256"],
+            algorithms=[settings.ALGORITHM],
         )
         username = payload.get("sub")
 
