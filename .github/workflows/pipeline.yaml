@@ -26,9 +26,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
-      - name: Check JWT configuration
-        run: |
-          uv run python -c "from fast_zero.settings import settings; print('ALGORITHM:', repr(settings.ALGORITHM)); print('SECRET_KEY definida:', isinstance(settings.SECRET_KEY, str) and bool(settings.SECRET_KEY))"
-
-      # - name: Run tests
-      #   run: uv run task test
+      - name: Run tests
+        run: uv run task test
